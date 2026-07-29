@@ -78,8 +78,8 @@ You can use **Try it out** to create, retrieve, update, and delete tasks directl
 ### Screenshots
 
 ![Swagger UI](images/swagger-ui-1.png)
-![Swagger UI](images/swagger-ui-2.png)
 ![Swagger UI](images/swagger-ui-3.png)
+![Swagger UI](images/swagger-ui-2.png)
 
 
 ## Project Structure
