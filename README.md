@@ -92,6 +92,14 @@ You can use **Try it out** to create, retrieve, update, and delete tasks directl
     └── swagger-ui.png
 ```
 
+# AI vs. Me
+
+Here's how the two codes compare:
+
+|  | **AI Version**                                                                                                                                                                                                                    | **My Version**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Limitations** | • Swagger UI does not show a request body field for `POST`/`PUT` because using `request: Request` gives FastAPI no schema to generate.<br>• This makes the API less self-documenting and harder to test directly from Swagger UI. | • `id = len(tasks) + 1` can reuse IDs after deletion. For example, deleting task `2` from 3 tasks causes the next task to receive ID `3`, which already exists.<br>• `404` responses are wrapped as `{"detail": {...}}` instead of using a flat `{"error": ...}` structure, making error responses inconsistent with `400` responses.<br>• Malformed request bodies (invalid JSON or incorrect types such as `title: 123`) are not caught by the custom validation and fall through to FastAPI's default `422` response instead of returning the intended `400`. |
+
 ## Author
 
 Created as part of a FastAPI REST API assignment.

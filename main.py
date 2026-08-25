@@ -33,6 +33,10 @@ async def root():
         "endpoints": ["/tasks"] 
     }
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 @app.get("/tasks")
 async def get_tasks():
     return tasks
@@ -73,16 +77,19 @@ async def create_task(new_task:TaskCreate):
 
 @app.put("/tasks/{id}")
 async def update_task(id:int, updated_task: TaskUpdate):
+
     if (updated_task.title is None) and (updated_task.done is None):
         return JSONResponse(
             status_code=400,
             content={"error": "Request body must contain at least one of: title or done"}
         )
+    
     elif (updated_task.title is not None) and (not updated_task.title.strip()):
         return JSONResponse(
             status_code=400,
             content ={"error": f"Empty title"}
         )
+    
     else:
         for task in tasks:
             if task.id == id:
@@ -98,7 +105,7 @@ async def update_task(id:int, updated_task: TaskUpdate):
             )
 
 @app.delete("/tasks/{id}")
-async def update_task(id:int):
+async def delete_task(id:int):
     for task in tasks:
         if task.id == id:
             tasks.remove(task)
@@ -108,7 +115,3 @@ async def update_task(id:int):
             status_code=404,
             detail={"error": f"Task id ({id}) not found"}
         )    
-
-@app.get("/health")
-async def health_check():
-    return {"status": "ok"}
