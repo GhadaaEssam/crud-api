@@ -6,11 +6,11 @@ def createdb():
     return con,cur
 
 def initialize_tasks_table(cur):
-    cur.execute("CREATE TABLE tasks(id int PRIMARY KEY, title varchar(255), done BOOL)")
+    cur.execute("CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title varchar(255), done BOOL)")
     return
 
 def insert_three_samples(con,cur):
-    cur.execute( "INSERT INTO tasks(id, title, done) VAlUES (1,'Task 1',False),(2,'Task 2',TRUE),(3,'Task 3',False)" )
+    cur.execute( "INSERT INTO tasks(title, done) VAlUES ('Task 1',False),('Task 2',TRUE),('Task 3',False)" )
     con.commit()
     print("done")
 
@@ -22,8 +22,12 @@ def get_all_tasks(cur):
 def get_task_by_id(cur, id):
     cur.execute( "Select * FROM tasks WHERE id=?", (id,))
     task = cur.fetchone()
-
     return task
+
+def insert_task(con, cur, title,done=False):
+    cur.execute("INSERT INTO tasks(title, done) VALUES (?, ?)", (title, done))
+    con.commit()
+    return cur.lastrowid
 
 if __name__ == "__main__":
     con,cur = createdb()

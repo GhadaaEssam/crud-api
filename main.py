@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
-from data import createdb, initialize_tasks_table, insert_three_samples, get_all_tasks, get_task_by_id
+from data import createdb, initialize_tasks_table, insert_three_samples, get_all_tasks, get_task_by_id,insert_task
 
 # run command: python -m fastapi dev main.py
 
@@ -80,12 +80,9 @@ async def create_task(new_task:TaskCreate):
         )
     
     else:
-        task_data = Task(
-            id=len(tasks)+1 ,
-            title=new_task.title,
-            done=False )
-        tasks.append(task_data)
-        return task_data
+        task_id = insert_task(con=con, cur=cur, title=new_task.title, done=False)
+        task = get_task_by_id(cur=cur, id=task_id)
+        return task
 
 @app.put("/tasks/{id}")
 async def update_task(id:int, updated_task: TaskUpdate):
