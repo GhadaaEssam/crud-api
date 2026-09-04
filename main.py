@@ -27,10 +27,6 @@ if not cur.execute("SELECT * FROM tasks").fetchone():
 
 get_all_tasks(cur=cur)
 
-class Task(BaseModel):
-    id: int
-    title: str
-    done: bool
 
 class TaskCreate(BaseModel):
     title: Optional[str] = None
@@ -38,12 +34,6 @@ class TaskCreate(BaseModel):
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     done: Optional[bool] = None
-
-tasks = [
-    Task(id=1, title="Task 1", done=False),
-    Task(id=2, title="Task 2", done=True),
-    Task(id=3, title="Task 3", done=False),
-]
 
 @app.get("/")
 async def root():
