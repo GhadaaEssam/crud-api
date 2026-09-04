@@ -2,10 +2,23 @@ from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
+from data import createdb, initialize_tasks_table, insert_three_samples, get_all_tasks
 
 # run command: python -m fastapi dev main.py
 
 app = FastAPI()
+
+# Database initialization
+con,cur = createdb()
+
+if not cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'").fetchone():
+    initialize_tasks_table(cur=cur)
+
+if not cur.execute("SELECT * FROM tasks").fetchone():
+    insert_three_samples(con, cur)
+    
+get_all_tasks(cur=cur)
+con.close()
 
 class Task(BaseModel):
     id: int
