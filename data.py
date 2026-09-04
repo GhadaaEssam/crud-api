@@ -29,6 +29,24 @@ def insert_task(con, cur, title,done=False):
     con.commit()
     return cur.lastrowid
 
+def alter_task(con, cur, id, title=None, done=None):
+    if title is not None and done is not None:
+        cur.execute("UPDATE tasks SET title=?, done=? WHERE id=?", (title, done, id))
+    elif title is not None:
+        cur.execute("UPDATE tasks SET title=? WHERE id=?", (title, id))
+    elif done is not None:
+        cur.execute("UPDATE tasks SET done=? WHERE id=?", (done, id))
+    con.commit()
+
+    return get_task_by_id(cur, id)
+
+def remove_task(con, cur, id):
+    cur.execute("DELETE FROM tasks WHERE id=?", (id,))
+    if cur.rowcount == 0:
+        return False
+    con.commit()
+    return True
+
 if __name__ == "__main__":
     con,cur = createdb()
     if not cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'").fetchone():

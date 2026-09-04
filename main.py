@@ -2,7 +2,15 @@ from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
-from data import createdb, initialize_tasks_table, insert_three_samples, get_all_tasks, get_task_by_id,insert_task
+from data import (createdb, 
+    initialize_tasks_table, 
+    insert_three_samples, 
+    get_all_tasks, 
+    get_task_by_id,
+    insert_task,
+    alter_task,
+    remove_task
+)
 
 # run command: python -m fastapi dev main.py
 
@@ -86,7 +94,6 @@ async def create_task(new_task:TaskCreate):
 
 @app.put("/tasks/{id}")
 async def update_task(id:int, updated_task: TaskUpdate):
-
     if (updated_task.title is None) and (updated_task.done is None):
         return JSONResponse(
             status_code=400,
@@ -100,27 +107,21 @@ async def update_task(id:int, updated_task: TaskUpdate):
         )
     
     else:
-        for task in tasks:
-            if task.id == id:
-                if updated_task.title is not None:
-                    task.title = updated_task.title
-                if updated_task.done is not None:
-                    task.done = updated_task.done
-                return task 
-        
-        raise HTTPException(
+        task = alter_task(con=con, 
+                          cur=cur, id=id, 
+                          title=updated_task.title, 
+                          done=updated_task.done)
+        return task if task is not None else HTTPException(
             status_code=404,
             detail={"error": f"Task {id} not found"}
-            )
+        )
 
 @app.delete("/tasks/{id}")
 async def delete_task(id:int):
-    for task in tasks:
-        if task.id == id:
-            tasks.remove(task)
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        
-    raise HTTPException(
+    success = remove_task(con=con, cur=cur, id=id)
+    if not success:
+        raise HTTPException(
             status_code=404,
             detail={"error": f"Task id ({id}) not found"}
-        )    
+        )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
