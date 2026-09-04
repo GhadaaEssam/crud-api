@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
-from data import createdb, initialize_tasks_table, insert_three_samples, get_all_tasks
+from data import createdb, initialize_tasks_table, insert_three_samples, get_all_tasks, get_task_by_id
 
 # run command: python -m fastapi dev main.py
 
@@ -16,9 +16,8 @@ if not cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='
 
 if not cur.execute("SELECT * FROM tasks").fetchone():
     insert_three_samples(con, cur)
-    
+
 get_all_tasks(cur=cur)
-con.close()
 
 class Task(BaseModel):
     id: int
@@ -52,18 +51,18 @@ async def health_check():
 
 @app.get("/tasks")
 async def get_tasks():
-    return tasks
+    tasks_db = get_all_tasks(cur=cur)
+    return tasks_db
 
 @app.get("/tasks/{id}")
 async def get_task(id: int):
-    for task in tasks:
-        if task.id == id:
-            return task
-        
-    raise HTTPException(
-        status_code=404,
-        detail={"error": f"Task {id} not found"}
-    )
+    task = get_task_by_id(cur=cur, id=id)
+    if task is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": f"Task {id} not found"}
+        )
+    return task
 
 @app.post("/tasks", status_code=status.HTTP_201_CREATED)
 async def create_task(new_task:TaskCreate):

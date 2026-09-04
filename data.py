@@ -17,7 +17,13 @@ def insert_three_samples(con,cur):
 def get_all_tasks(cur):
     cur.execute( "Select * FROM tasks")
     tasks = cur.fetchall()
-    print(tasks)
+    return tasks
+
+def get_task_by_id(cur, id):
+    cur.execute( "Select * FROM tasks WHERE id=?", (id,))
+    task = cur.fetchone()
+
+    return task
 
 if __name__ == "__main__":
     con,cur = createdb()
