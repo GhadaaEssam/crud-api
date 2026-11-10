@@ -43,10 +43,24 @@ def initialize_tasks_table(cur):
         CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            done INTEGER NOT NULL DEFAULT 0 CHECK(done IN (0, 1))
+            done INTEGER NOT NULL DEFAULT 0 CHECK(done IN (0, 1)),
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    return
+    
+    # Check if the created_at and updated_at columns exist, and add them if they don't
+    cur.execute("PRAGMA table_info(tasks)")
+    columns = {row[1] for row in cur.fetchall()}
+
+    if "created_at" not in columns:
+        cur.execute("ALTER TABLE tasks ADD COLUMN created_at TEXT")
+    if "updated_at" not in columns:
+        cur.execute("ALTER TABLE tasks ADD COLUMN updated_at TEXT")
+
+    # Update existing rows to have the current timestamp for created_at and updated_at
+    cur.execute("UPDATE tasks SET created_at=CURRENT_TIMESTAMP WHERE created_at IS NULL")
+    cur.execute("UPDATE tasks SET updated_at=CURRENT_TIMESTAMP WHERE updated_at IS NULL")
 
 def insert_three_samples(con,cur):
     """
@@ -82,7 +96,7 @@ def insert_task(con, cur, title,done=False):
     Insert a new task into the database.
     Returns the ID of the newly created task.
     """
-    cur.execute("INSERT INTO tasks(title, done) VALUES (?, ?)", (title, done))
+    cur.execute("INSERT INTO tasks(title, done, created_at, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", (title, done))
     con.commit()
     return cur.lastrowid
 
@@ -93,11 +107,11 @@ def alter_task(con, cur, id, title=None, done=None):
     If done is None, it won't be updated.
     """
     if title is not None and done is not None:
-        cur.execute("UPDATE tasks SET title=?, done=? WHERE id=?", (title, done, id))
+        cur.execute("UPDATE tasks SET title=?, done=? , updated_at=CURRENT_TIMESTAMP WHERE id=?", (title, done, id))
     elif title is not None:
-        cur.execute("UPDATE tasks SET title=? WHERE id=?", (title, id))
+        cur.execute("UPDATE tasks SET title=?, updated_at=CURRENT_TIMESTAMP WHERE id=?", (title, id))
     elif done is not None:
-        cur.execute("UPDATE tasks SET done=? WHERE id=?", (done, id))
+        cur.execute("UPDATE tasks SET done=?, updated_at=CURRENT_TIMESTAMP WHERE id=?", (done, id))
     con.commit()
 
     return get_task_by_id(cur, id)
