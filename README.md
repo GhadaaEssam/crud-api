@@ -51,12 +51,7 @@ task-management-api/
 
 ```bash
 git clone <repository-url>
-<<<<<<< HEAD
-cd flyrank-be-w2
-=======
 cd task-management-api
-cd app
->>>>>>> 3896dd5ddeb478ce47e8bf02daa09d3607e51961
 ```
 
 ### 2. Create and activate a virtual environment
