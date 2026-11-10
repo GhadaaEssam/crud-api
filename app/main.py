@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, status, Response, Depends
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from app.database.db import (createdb, 
@@ -23,7 +22,7 @@ class TaskCreate(BaseModel):
     @classmethod
     def validate_title(cls, v):
         v = v.strip()  
-        if not v.strip():
+        if not v:
             raise ValueError('Title must not be empty')
         return v
     
@@ -35,9 +34,10 @@ class TaskUpdate(BaseModel):
     @field_validator('title')
     @classmethod
     def validate_title(cls, v):
-        v = v.strip()
-        if v is not None and not v.strip():
-            raise ValueError('Title must not be empty')
+        if v is not None:
+            v = v.strip()
+            if not v:
+                raise ValueError('Title must not be empty')
         return v
 
 @app.get("/")
@@ -53,12 +53,12 @@ async def health_check():
     return {"status": "ok"}
 
 @app.get("/tasks")
-async def get_tasks(db= Depends(get_db_connection)):
+def get_tasks(db= Depends(get_db_connection)):
     con, cur = db
     return get_all_tasks(cur)
 
 @app.get("/tasks/{id}")
-async def get_task(id: int, db= Depends(get_db_connection)):
+def get_task(id: int, db= Depends(get_db_connection)):
     con, cur = db
     task = get_task_by_id(cur=cur, id=id)
     if task is None:
@@ -69,16 +69,16 @@ async def get_task(id: int, db= Depends(get_db_connection)):
     return task
 
 @app.post("/tasks", status_code=status.HTTP_201_CREATED)
-async def create_task(new_task:TaskCreate, db= Depends(get_db_connection)):
+def create_task(new_task:TaskCreate, db= Depends(get_db_connection)):
     con, cur = db
     task_id = insert_task(con=con, cur=cur, title=new_task.title, done=False) 
     return get_task_by_id(cur=cur, id=task_id)
 
 @app.patch("/tasks/{id}")
-async def update_task(id:int, updated_task: TaskUpdate, db= Depends(get_db_connection)):
+def update_task(id:int, updated_task: TaskUpdate, db= Depends(get_db_connection)):
     con, cur = db
 
-    # Check if the request body is empty (model_fields_set will be empty if no fields are provided or if fields are set to None)
+    # Check if the request body is empty (model_fields_set tracks which fields were explicitly provided, even if their values are None)
     if updated_task.model_fields_set == set():
         raise HTTPException(
             status_code=400,
@@ -99,7 +99,7 @@ async def update_task(id:int, updated_task: TaskUpdate, db= Depends(get_db_conne
     return task
 
 @app.delete("/tasks/{id}")
-async def delete_task(id:int, db= Depends(get_db_connection)):
+def delete_task(id:int, db= Depends(get_db_connection)):
     con, cur = db
     success = remove_task(con=con, cur=cur, id=id)
     if not success:
