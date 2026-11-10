@@ -39,6 +39,7 @@ class TaskUpdate(BaseModel):
     done: Optional[bool] = None
 
     # validator to ensure title is not empty or whitespace using field_validator decorator
+    # validators only run when the fields are provided. If a field is omitted, its default None is not rejected
     @field_validator('title')
     @classmethod
     def validate_title(cls, v):
@@ -46,6 +47,13 @@ class TaskUpdate(BaseModel):
             v = v.strip()
             if not v:
                 raise ValueError('Title must not be empty')
+        return v
+
+    @field_validator("done")
+    @classmethod
+    def validate_done(cls, v):
+        if v is None: 
+            raise ValueError("Done cannot be null")
         return v
 
 @app.get("/")
