@@ -12,6 +12,14 @@ def get_db_connection():
     finally:
         con.close()
 
+def initialize_database():
+    con, cur = createdb()
+    try:
+        initialize_tasks_table(cur)
+        con.commit()
+    finally:
+        con.close()
+
 def initialize_tasks_table(cur):
     cur.execute("""
         CREATE TABLE IF NOT EXISTS tasks (

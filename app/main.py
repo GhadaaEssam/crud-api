@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException, status, Response, Depends
 from pydantic import BaseModel, Field, field_validator
+from contextlib import asynccontextmanager
 from typing import Optional
-from app.database.db import (createdb, 
+from app.database.db import (
+    initialize_database,
     get_all_tasks, 
     get_task_by_id,
     insert_task,
@@ -12,7 +14,13 @@ from app.database.db import (createdb,
 
 # run command: python -m fastapi dev main.py
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize the database and create the tasks table if it doesn't exist
+    initialize_database()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 class TaskCreate(BaseModel):
     title: str = Field(min_length=1)
