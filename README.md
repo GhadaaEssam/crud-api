@@ -1,105 +1,192 @@
-# My first CRUD API
+# Task Management API
 
-A simple RESTful Task API built with **FastAPI**. It allows you to create, read, update, and delete tasks (CRUD). The API also provides interactive documentation through Swagger UI.
+A simple RESTful Task Management API built with **FastAPI** and **SQLite**. It supports creating, retrieving, updating, and deleting tasks, with request validation using Pydantic.
 
 ## Features
 
-* Create a new task
-* Retrieve all tasks
-* Retrieve a task by ID
-* Update an existing task
-* Delete a task
-* Automatic interactive API documentation with Swagger UI
+- Create a task with a validated title.
+- Retrieve all tasks or a specific task by ID.
+- Partially update a task's title or completion status.
+- Delete a task.
+- Validate incoming request data using Pydantic.
+- Manage database connections through FastAPI dependency injection.
+- Return appropriate HTTP status codes and error responses.
 
-## Requirements
+## Tech Stack
 
-* Python 3.10+
-* FastAPI
-* Uvicorn/FastAPI CLI
+| Technology | Purpose |
+|---|---|
+| Python | Main programming language |
+| FastAPI | REST API framework |
+| SQLite | Relational database |
+| Pydantic | Request validation |
+| Uvicorn | ASGI server |
 
-## Installation & Run
+SQLite is used because it is lightweight, serverless, and doesn't require a separate database server or configuration. It is suitable for this small project.
 
-1. Install the required packages.
+## Project Structure
 
-2. Start the development server:
+```text
+flyrank-be-w2/
+├── app/
+│   ├── database/
+│   │   └── db.py
+│   └── main.py
+├── images/
+├── .gitignore
+├── README.md
+├── requirements.txt
+├── tasks.db
+└── .venv/
+```
+
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd flyrank-be-w2
+```
+
+### 2. Create and activate a virtual environment
+
+```bash
+python -m venv .venv
+```
+
+Windows:
+
+```bash
+.venv\Scripts\activate
+```
+
+### 3. Install dependencies
+
+Install all required packages from `requirements.txt`:
+
+```bash
+pip install -r requirements.txt
+```
+
+SQLite is included with Python, so no separate database installation is required.
+
+### 4. Start the API
 
 ```bash
 python -m fastapi dev main.py
 ```
 
+The database is initialized automatically when the application starts. If the database or `tasks` table doesn't exist, it will be created automatically.
+
 The API will be available at:
 
-* API: http://127.0.0.1:8000
-* Swagger UI: http://127.0.0.1:8000/docs
-
-## API Endpoints
-
-| Method | Endpoint      | Description                                     |
-| ------ | ------------- | ----------------------------------------------- |
-| GET    | `/`           | Returns API information                         |
-| GET    | `/tasks`      | Returns all tasks                               |
-| GET    | `/tasks/{id}` | Returns a task by its ID                        |
-| POST   | `/tasks`      | Creates a new task                              |
-| PUT    | `/tasks/{id}` | Updates a task's title and/or completion status |
-| DELETE | `/tasks/{id}` | Deletes a task                                  |
-| GET    | `/health`     | Health check endpoint                           |
-
-## Example Request
-
-```bash
-curl.exe -i -X POST "http://127.0.0.1:8000/tasks" -H "Content-Type: application/json" -d '{"title":"Buy milk"}'
+```text
+http://127.0.0.1:8000
 ```
 
-## Example Response
+### 5. Explore the API documentation
+
+Open Swagger UI in your browser:
 
 ```text
-HTTP/1.1 201 Created
-content-type: application/json
-
-{
-  "id": 4,
-  "title": "Buy milk",
-  "done": false
-}
-```
-
-## Swagger UI
-
-FastAPI automatically generates interactive API documentation.
-
-Open:
-
-```
 http://127.0.0.1:8000/docs
 ```
 
-You can use **Try it out** to create, retrieve, update, and delete tasks directly from the browser.
+You can explore and test all available endpoints directly from the interactive documentation.
 
-### Screenshots
+## API Endpoints
 
-![Swagger UI](images/swagger-ui-1.png)
-![Swagger UI](images/swagger-ui-3.png)
-![Swagger UI](images/swagger-ui-2.png)
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/` | API information |
+| GET | `/health` | Health check |
+| GET | `/tasks` | Retrieve all tasks |
+| GET | `/tasks/{id}` | Retrieve a task by ID |
+| POST | `/tasks` | Create a new task |
+| PATCH | `/tasks/{id}` | Partially update a task |
+| DELETE | `/tasks/{id}` | Delete a task |
 
+## Example Requests
 
-## Project Structure
+### Create a task
 
-```text
-.
-├── main.py
-├── README.md
-└── images
-    └── swagger-ui.png
+`POST /tasks`
+
+```json
+{
+  "title": "Learn FastAPI"
+}
 ```
 
-# AI vs. Me
+### Update a task
 
-Here's how the two codes compare:
+`PATCH /tasks/1`
 
-|  | **AI Version**                                                                                                                                                                                                                    | **My Version**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Limitations** | • Swagger UI does not show a request body field for `POST`/`PUT` because using `request: Request` gives FastAPI no schema to generate.<br>• This makes the API less self-documenting and harder to test directly from Swagger UI. | • `id = len(tasks) + 1` can reuse IDs after deletion. For example, deleting task `2` from 3 tasks causes the next task to receive ID `3`, which already exists.<br>• `404` responses are wrapped as `{"detail": {...}}` instead of using a flat `{"error": ...}` structure, making error responses inconsistent with `400` responses.<br>• Malformed request bodies (invalid JSON or incorrect types such as `title: 123`) are not caught by the custom validation and fall through to FastAPI's default `422` response instead of returning the intended `400`. |
+```json
+{
+  "done": true
+}
+```
 
-## Author
+### Delete a task
 
-Created as part of a FastAPI REST API assignment.
+`DELETE /tasks/1`
+
+## Database Design
+
+The application uses a SQLite database named `tasks.db`.
+
+The `tasks` table contains:
+
+| Column | Type | Description |
+|---|---|---|
+| id | INTEGER | Primary key, auto-incremented |
+| title | TEXT | Task title, required |
+| done | INTEGER | Completion status (0 or 1) |
+
+The `done` column has a default value of `0` and a CHECK constraint to ensure it only stores `0` or `1`.
+
+### Example SQL Query
+
+Retrieve all tasks:
+
+```sql
+SELECT * FROM tasks;
+```
+
+Retrieve only completed tasks:
+
+```sql
+SELECT * FROM tasks WHERE done = 1;
+```
+
+### Inspecting the Database
+
+You can open `tasks.db` using a SQLite database viewer, such as the SQLite Viewer extension in VS Code, to inspect the database, browse records, and execute SQL queries.
+
+<!-- Optional: Add a screenshot of the database viewer here -->
+![Database Viewer](images/sqlite-viewer.png)
+
+## Request Validation
+
+Pydantic models validate incoming request bodies.
+
+- `TaskCreate` ensures the title is not empty or whitespace.
+- `TaskUpdate` validates the title when it is provided.
+- Invalid request data is rejected before it reaches the database operations.
+
+## Database Connection Management
+
+The application uses FastAPI's dependency injection system with a generator dependency.
+
+Each request that needs database access obtains a connection and cursor. The connection is closed automatically after the request finishes, including when an exception occurs.
+
+## Interactive API Documentation
+
+FastAPI automatically generates interactive API documentation.
+
+- Swagger UI: `http://127.0.0.1:8000/docs`
+- ReDoc: `http://127.0.0.1:8000/redoc`
+
+These interfaces allow you to explore endpoints and test requests directly from your browser.
