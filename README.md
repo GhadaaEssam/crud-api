@@ -27,13 +27,17 @@ SQLite is used because it is lightweight, serverless, and doesn't require a sepa
 ## Project Structure
 
 ```text
-task-management-api/
+flyrank-be-w2/
 ├── app/
-│   └── database/
-│       └── db.py
-├── main.py
+│   ├── database/
+│   │   └── db.py
+│   └── main.py
+├── images/
+├── .gitignore
+├── README.md
+├── requirements.txt
 ├── tasks.db
-└── requirements.txt
+└── .venv/
 ```
 
 ## Getting Started
@@ -42,7 +46,7 @@ task-management-api/
 
 ```bash
 git clone <repository-url>
-cd task-management-api
+cd flyrank-be-w2
 ```
 
 ### 2. Create and activate a virtual environment
@@ -59,35 +63,37 @@ Windows:
 
 ### 3. Install dependencies
 
+Install all required packages from `requirements.txt`:
+
 ```bash
-pip install "fastapi[standard]"
+pip install -r requirements.txt
 ```
 
 SQLite is included with Python, so no separate database installation is required.
 
-### 4. Initialize the database
-
-Run the database module from the project root:
-
-```bash
-python -m app.database.db
-```
-
-This creates the `tasks` table if it doesn't exist and inserts three sample tasks.
-
-**Note:** The sample insertion function currently runs each time you execute this command, so avoid running it repeatedly unless you want duplicate sample records.
-
-### 5. Start the API
+### 4. Start the API
 
 ```bash
 python -m fastapi dev main.py
 ```
+
+The database is initialized automatically when the application starts. If the database or `tasks` table doesn't exist, it will be created automatically.
 
 The API will be available at:
 
 ```text
 http://127.0.0.1:8000
 ```
+
+### 5. Explore the API documentation
+
+Open Swagger UI in your browser:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+You can explore and test all available endpoints directly from the interactive documentation.
 
 ## API Endpoints
 
@@ -160,7 +166,7 @@ SELECT * FROM tasks WHERE done = 1;
 You can open `tasks.db` using a SQLite database viewer, such as the SQLite Viewer extension in VS Code, to inspect the database, browse records, and execute SQL queries.
 
 <!-- Optional: Add a screenshot of the database viewer here -->
-<!-- ![Database Viewer](images/database-viewer.png) -->
+![Database Viewer](images/sqlite-viewer.png)
 
 ## Request Validation
 
