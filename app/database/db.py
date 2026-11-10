@@ -135,6 +135,36 @@ def get_filtered_tasks(cur,name=None ,done=None):
     cur.execute(Query, params) 
     return cur.fetchall()
 
+def get_statistics(cur):
+    """
+    Get statistics about the tasks in the database.
+    Returns a dictionary containing the total number of tasks, 
+    the number of completed tasks, and the number of pending tasks.
+    """
+    cur.execute("""
+        SELECT
+            COUNT(*) AS total,
+            COUNT(CASE WHEN done=1 THEN 1 END) AS completed,
+            COUNT(CASE WHEN done=0 THEN 1 END) AS pending,
+            COALESCE(
+                ROUND(100.0 * COUNT(CASE WHEN done=1 THEN 1 END) / NULLIF(COUNT(*), 0), 2),
+                0
+            ) AS done_percentage
+        FROM tasks;
+    """)
+    stats = cur.fetchone()
+    total_tasks = stats[0]
+    completed_tasks = stats[1]
+    pending_tasks = stats[2]
+    done_percentage = stats[3]
+
+    return {
+        "total_tasks": total_tasks,
+        "completed_tasks": completed_tasks,
+        "pending_tasks": pending_tasks,
+        "done_percentage":done_percentage
+    }
+
 if __name__ == "__main__":
     con,cur = createdb()
     if not cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'").fetchone():

@@ -3,13 +3,15 @@ from pydantic import BaseModel, Field, field_validator
 from contextlib import asynccontextmanager
 from typing import Optional
 from database.db import (
+    get_statistics,
     initialize_database,
     get_task_by_id,
     insert_task,
     alter_task,
     remove_task,
     get_db_connection,
-    get_filtered_tasks
+    get_filtered_tasks,
+    get_statistics
 )
 
 # run command: python -m fastapi dev main.py
@@ -67,6 +69,11 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+@app.get("/stats")
+def get_stats(db= Depends(get_db_connection)):
+    con, cur = db
+    return get_statistics(cur)
 
 @app.get("/tasks")
 def get_tasks(search: Optional[str] = None, done: Optional[bool] = None, db= Depends(get_db_connection)):
