@@ -6,11 +6,20 @@ def createdb():
     return con,cur
 
 def initialize_tasks_table(cur):
-    cur.execute("CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title varchar(255), done BOOL)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            done INTEGER NOT NULL DEFAULT 0 CHECK(done IN (0, 1))
+        )
+    """)
     return
 
 def insert_three_samples(con,cur):
-    cur.execute( "INSERT INTO tasks(title, done) VAlUES ('Task 1',False),('Task 2',TRUE),('Task 3',False)" )
+    cur.execute( """
+        INSERT INTO tasks(title, done) 
+        VAlUES ('Task 1',False),('Task 2',TRUE),('Task 3',False)
+    """ )
     con.commit()
     print("done")
 

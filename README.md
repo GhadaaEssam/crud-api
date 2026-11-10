@@ -1,4 +1,4 @@
-# My first CRUD API
+# Tasks App
 
 A simple RESTful Task API built with **FastAPI**. It allows you to create, read, update, and delete tasks (CRUD). The API also provides interactive documentation through Swagger UI.
 

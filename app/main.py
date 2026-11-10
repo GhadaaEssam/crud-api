@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
-from data import (createdb, 
+from app.database.db import (createdb, 
     initialize_tasks_table, 
     insert_three_samples, 
     get_all_tasks, 
@@ -29,8 +29,8 @@ get_all_tasks(cur=cur)
 
 
 class TaskCreate(BaseModel):
-    title: Optional[str] = None
-
+    title: str = Field(min_length=1)
+    
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     done: Optional[bool] = None
@@ -101,10 +101,13 @@ async def update_task(id:int, updated_task: TaskUpdate):
                           cur=cur, id=id, 
                           title=updated_task.title, 
                           done=updated_task.done)
-        return task if task is not None else HTTPException(
-            status_code=404,
-            detail={"error": f"Task {id} not found"}
-        )
+        if task is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Task {id} not found"
+            )
+
+        return task
 
 @app.delete("/tasks/{id}")
 async def delete_task(id:int):
