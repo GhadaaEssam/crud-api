@@ -1,32 +1,19 @@
-from fastapi import FastAPI, HTTPException, status, Response
+from fastapi import FastAPI, HTTPException, status, Response, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from app.database.db import (createdb, 
-    initialize_tasks_table, 
-    insert_three_samples, 
     get_all_tasks, 
     get_task_by_id,
     insert_task,
     alter_task,
-    remove_task
+    remove_task,
+    get_db_connection
 )
 
 # run command: python -m fastapi dev main.py
 
 app = FastAPI()
-
-# Database initialization
-con,cur = createdb()
-
-if not cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'").fetchone():
-    initialize_tasks_table(cur=cur)
-
-if not cur.execute("SELECT * FROM tasks").fetchone():
-    insert_three_samples(con, cur)
-
-get_all_tasks(cur=cur)
-
 
 class TaskCreate(BaseModel):
     title: str = Field(min_length=1)
@@ -66,12 +53,13 @@ async def health_check():
     return {"status": "ok"}
 
 @app.get("/tasks")
-async def get_tasks():
-    tasks_db = get_all_tasks(cur=cur)
-    return tasks_db
+async def get_tasks(db= Depends(get_db_connection)):
+    con, cur = db
+    return get_all_tasks(cur)
 
 @app.get("/tasks/{id}")
-async def get_task(id: int):
+async def get_task(id: int, db= Depends(get_db_connection)):
+    con, cur = db
     task = get_task_by_id(cur=cur, id=id)
     if task is None:
         raise HTTPException(
@@ -81,12 +69,14 @@ async def get_task(id: int):
     return task
 
 @app.post("/tasks", status_code=status.HTTP_201_CREATED)
-async def create_task(new_task:TaskCreate):
+async def create_task(new_task:TaskCreate, db= Depends(get_db_connection)):
+    con, cur = db
     task_id = insert_task(con=con, cur=cur, title=new_task.title, done=False) 
     return get_task_by_id(cur=cur, id=task_id)
 
 @app.patch("/tasks/{id}")
-async def update_task(id:int, updated_task: TaskUpdate):
+async def update_task(id:int, updated_task: TaskUpdate, db= Depends(get_db_connection)):
+    con, cur = db
 
     # Check if the request body is empty (model_fields_set will be empty if no fields are provided or if fields are set to None)
     if updated_task.model_fields_set == set():
@@ -109,7 +99,8 @@ async def update_task(id:int, updated_task: TaskUpdate):
     return task
 
 @app.delete("/tasks/{id}")
-async def delete_task(id:int):
+async def delete_task(id:int, db= Depends(get_db_connection)):
+    con, cur = db
     success = remove_task(con=con, cur=cur, id=id)
     if not success:
         raise HTTPException(

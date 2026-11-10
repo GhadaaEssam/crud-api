@@ -5,6 +5,13 @@ def createdb():
     cur = con.cursor()
     return con,cur
 
+def get_db_connection():
+    con, cur = createdb()
+    try:
+        yield con, cur
+    finally:
+        con.close()
+
 def initialize_tasks_table(cur):
     cur.execute("""
         CREATE TABLE IF NOT EXISTS tasks (
