@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 from typing import Optional
 from database.db import (
     initialize_database,
-    get_all_tasks, 
     get_task_by_id,
     insert_task,
     alter_task,

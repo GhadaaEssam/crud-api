@@ -130,6 +130,8 @@ def get_filtered_tasks(cur,name=None ,done=None):
         Query += " AND done = ?"
         params.append(done)
 
+    Query += " ORDER BY title ASC"
+
     cur.execute(Query, params) 
     return cur.fetchall()
 
