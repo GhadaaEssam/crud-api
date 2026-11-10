@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from app.database.db import (createdb, 
     initialize_tasks_table, 
@@ -30,6 +30,14 @@ get_all_tasks(cur=cur)
 
 class TaskCreate(BaseModel):
     title: str = Field(min_length=1)
+
+    # validator to ensure title is not empty or whitespace using field_validator decorator
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, v):
+        if not v.strip():
+            raise ValueError('Title must not be empty')
+        return v
     
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
@@ -64,23 +72,8 @@ async def get_task(id: int):
 
 @app.post("/tasks", status_code=status.HTTP_201_CREATED)
 async def create_task(new_task:TaskCreate):
-
-    if new_task.title is None:
-        return JSONResponse(
-            status_code=400,
-            content={"error": "Missing required field: title"}
-        )
-    
-    elif not new_task.title.strip():
-        return JSONResponse(
-            status_code=400,
-            content ={"error": f"Empty title"}
-        )
-    
-    else:
-        task_id = insert_task(con=con, cur=cur, title=new_task.title, done=False)
-        task = get_task_by_id(cur=cur, id=task_id)
-        return task
+    task_id = insert_task(con=con, cur=cur, title=new_task.title, done=False) 
+    return get_task_by_id(cur=cur, id=task_id)
 
 @app.put("/tasks/{id}")
 async def update_task(id:int, updated_task: TaskUpdate):
