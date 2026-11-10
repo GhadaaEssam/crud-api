@@ -87,30 +87,26 @@ async def create_task(new_task:TaskCreate):
 
 @app.patch("/tasks/{id}")
 async def update_task(id:int, updated_task: TaskUpdate):
-    if (updated_task.title is None) and (updated_task.done is None):
-        return JSONResponse(
-            status_code=400,
-            content={"error": "Request body must contain at least one of: title or done"}
-        )
-    
-    elif (updated_task.title is not None) and (not updated_task.title.strip()):
-        return JSONResponse(
-            status_code=400,
-            content ={"error": f"Empty title"}
-        )
-    
-    else:
-        task = alter_task(con=con, 
-                          cur=cur, id=id, 
-                          title=updated_task.title, 
-                          done=updated_task.done)
-        if task is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Task {id} not found"
-            )
 
-        return task
+    # Check if the request body is empty (model_fields_set will be empty if no fields are provided or if fields are set to None)
+    if updated_task.model_fields_set == set():
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "Request body must contain at least one of: title or done"}
+        )
+
+    task = alter_task(
+        con=con, 
+        cur=cur, id=id, 
+        title=updated_task.title, 
+        done=updated_task.done
+    )
+
+    # Check if the task was found and updated    
+    if task is None:
+        raise HTTPException(status_code=404,detail=f"Task {id} not found")
+
+    return task
 
 @app.delete("/tasks/{id}")
 async def delete_task(id:int):
