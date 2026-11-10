@@ -27,7 +27,7 @@ SQLite is used because it is lightweight, serverless, and doesn't require a sepa
 ## Project Structure
 
 ```text
-flyrank-be-w2/
+task-management-api/
 ├── app/
 │   ├── database/
 │   │   └── db.py
@@ -46,7 +46,7 @@ flyrank-be-w2/
 
 ```bash
 git clone <repository-url>
-cd flyrank-be-w2
+cd task-management-api
 ```
 
 ### 2. Create and activate a virtual environment
