@@ -2,14 +2,15 @@ from fastapi import FastAPI, HTTPException, status, Response, Depends
 from pydantic import BaseModel, Field, field_validator
 from contextlib import asynccontextmanager
 from typing import Optional
-from app.database.db import (
+from database.db import (
     initialize_database,
     get_all_tasks, 
     get_task_by_id,
     insert_task,
     alter_task,
     remove_task,
-    get_db_connection
+    get_db_connection,
+    get_filtered_tasks
 )
 
 # run command: python -m fastapi dev main.py
@@ -69,9 +70,9 @@ async def health_check():
     return {"status": "ok"}
 
 @app.get("/tasks")
-def get_tasks(db= Depends(get_db_connection)):
+def get_tasks(search: Optional[str] = None, done: Optional[bool] = None, db= Depends(get_db_connection)):
     con, cur = db
-    return get_all_tasks(cur)
+    return get_filtered_tasks(cur, name=search, done=done)
 
 @app.get("/tasks/{id}")
 def get_task(id: int, db= Depends(get_db_connection)):
@@ -83,6 +84,7 @@ def get_task(id: int, db= Depends(get_db_connection)):
             detail={"error": f"Task {id} not found"}
         )
     return task
+
 
 @app.post("/tasks", status_code=status.HTTP_201_CREATED)
 def create_task(new_task:TaskCreate, db= Depends(get_db_connection)):

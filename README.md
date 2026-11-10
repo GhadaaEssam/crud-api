@@ -47,6 +47,7 @@ flyrank-be-w2/
 ```bash
 git clone <repository-url>
 cd flyrank-be-w2
+cd app
 ```
 
 ### 2. Create and activate a virtual environment
