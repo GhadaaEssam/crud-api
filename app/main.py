@@ -35,6 +35,7 @@ class TaskCreate(BaseModel):
     @field_validator('title')
     @classmethod
     def validate_title(cls, v):
+        v = v.strip()  
         if not v.strip():
             raise ValueError('Title must not be empty')
         return v
@@ -42,6 +43,15 @@ class TaskCreate(BaseModel):
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     done: Optional[bool] = None
+
+    # validator to ensure title is not empty or whitespace using field_validator decorator
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, v):
+        v = v.strip()
+        if v is not None and not v.strip():
+            raise ValueError('Title must not be empty')
+        return v
 
 @app.get("/")
 async def root():
@@ -75,7 +85,7 @@ async def create_task(new_task:TaskCreate):
     task_id = insert_task(con=con, cur=cur, title=new_task.title, done=False) 
     return get_task_by_id(cur=cur, id=task_id)
 
-@app.put("/tasks/{id}")
+@app.patch("/tasks/{id}")
 async def update_task(id:int, updated_task: TaskUpdate):
     if (updated_task.title is None) and (updated_task.done is None):
         return JSONResponse(
